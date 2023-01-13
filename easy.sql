@@ -45,3 +45,26 @@ WHERE today.temperature > yesterday.temperature
 SELECT player_id, MIN(event_date) AS first_login
 FROM Activity
 GROUP BY player_id
+
+# 584. Find Customer Referee
+SELECT name
+FROM Customer
+WHERE referee_id != 2 OR referee_id IS NULL
+
+# 586. Customer Placing the Largest Number of Orders
+SELECT customer_number
+FROM(
+SELECT COUNT(*) AS count, customer_number
+FROM Orders
+GROUP BY customer_number) AS tmp
+WHERE count =(SELECT MAX(count) FROM
+(
+SELECT COUNT(*) AS count, customer_number
+FROM Orders
+GROUP BY customer_number) AS tmpp
+)
+
+# 595. Big Countries
+SELECT name, population, area
+FROM World
+WHERE population >= 25000000 OR area >= 3000000
