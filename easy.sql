@@ -68,3 +68,24 @@ GROUP BY customer_number) AS tmpp
 SELECT name, population, area
 FROM World
 WHERE population >= 25000000 OR area >= 3000000
+
+# 596. Classes More Than 5 Students
+SELECT class
+FROM Courses
+GROUP BY class
+HAVING COUNT(student) >= 5
+
+# 607. Sales Person
+SELECT name
+FROM SalesPerson
+WHERE sales_id NOT IN (
+SELECT DISTINCT s.sales_id
+FROM SalesPerson s, Company c, Orders o
+WHERE s.sales_id = o.sales_id AND c.com_id = o.com_id
+AND c.name = "RED")
+
+# 620. Not Boring Movies
+SELECT * FROM Cinema
+WHERE description NOT LIKE "%boring%" AND
+mod(id,2) = 1
+ORDER BY rating DESC
