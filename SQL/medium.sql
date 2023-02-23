@@ -28,3 +28,12 @@ SELECT DISTINCT L1.num AS ConsecutiveNums
 FROM Logs L1, Logs L2, Logs L3 
 WHERE L1.id + 1 = L2.id AND L2.id + 1 = L3.id 
 AND L1.num = L2.num AND L2.num = L3.num
+
+# 184. Department Highest Salary
+SELECT D.name AS "Department", E.name AS "Employee", E.salary
+FROM Employee E, Department D
+WHERE E.departmentId = D.id AND 
+(E.departmentId , E.salary) IN
+    (SELECT departmentId, MAX(salary)
+     FROM Employee
+     GROUP BY departmentId)
