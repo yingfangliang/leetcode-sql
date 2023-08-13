@@ -1,47 +1,93 @@
-# 176. Second Highest Salary
-SELECT MAX(salary) AS SecondHighestSalary
-FROM Employee
-WHERE salary != (SELECT MAX(salary) FROM Employee)
+-- 176. Second Highest Salary (subquery)
+SELECT (
+    SELECT salary
+    FROM Employee
+    ORDER BY salary DESC
+    LIMIT 1 OFFSET 1
+) AS SecondHighestSalary; -- use SELECT(subquery) to show NULL when the result is empty.
 
-# 177. Nth Highest Salary
+-- 177. Nth Highest Salary (function)
 CREATE FUNCTION getNthHighestSalary(N INT) RETURNS INT
 BEGIN
-SET N = N-1;
+DECLARE skip_N INT DEFAULT N-1; 
+    -- DECLARE: create a new variable with specified data type
+    -- SET: change the value
   RETURN (
-      # Write your MySQL query statement below.
-      SELECT DISTINCT(salary) FROM Employee 
-      ORDER BY salary DESC LIMIT 1 OFFSET N
+      SELECT(
+        SELECT salary
+        FROM Employee
+        GROUP BY salary
+        ORDER BY salary DESC
+        LIMIT 1 OFFSET skip_N
+      ) AS "getNthHighestSalary(2)"
   );
 END
 
-# 178. Rank Scores
-SELECT S.score, tmp.rank
-FROM Scores S, (SELECT DISTINCT(score), ROW_NUMBER() OVER (ORDER BY score DESC) AS 'rank'
+-- *178. Rank Scores (DENSE_RANK())
+SELECT 
+  score, 
+  DENSE_RANK() OVER(ORDER BY score DESC) AS "rank"
+  -- DENSE_RANK(): 1,2,3,3,"4"
+  -- RANK(): 1,2,3,3,"5" 
 FROM Scores
-GROUP BY score
-ORDER BY score) AS tmp
-WHERE S.score = tmp.score
-ORDER BY S.score DESC
+ORDER BY "rank";
 
-# 180. Consecutive Numbers
-SELECT DISTINCT L1.num AS ConsecutiveNums
-FROM Logs L1, Logs L2, Logs L3 
-WHERE L1.id + 1 = L2.id AND L2.id + 1 = L3.id 
-AND L1.num = L2.num AND L2.num = L3.num
+-- *180. Consecutive Numbers (LEAD(), CTE)
+WITH cte AS (
+  SELECT 
+    num AS num0,
+    LEAD(num, 1) OVER(ORDER BY id) AS num1,
+    LEAD(num, 2) OVER(ORDER BY id) AS num2
+  FROM Logs
+)
+SELECT DISTINCT num0 AS ConsecutiveNums
+FROM cte
+WHERE num0 = num1 AND 
+      num1 = num2;
 
-# 184. Department Highest Salary
-SELECT D.name AS "Department", E.name AS "Employee", E.salary
-FROM Employee E, Department D
-WHERE E.departmentId = D.id AND 
-(E.departmentId , E.salary) IN
-    (SELECT departmentId, MAX(salary)
-     FROM Employee
-     GROUP BY departmentId)
-     
-# 608. Tree Node
-SELECT id, CASE 
-    WHEN p_id IS null THEN "Root"
-    WHEN p_id IN (SELECT id FROM tree) AND id IN (SELECT p_id FROM tree) THEN "Inner"
-    ELSE 'Leaf'
-END AS "type"
-FROM Tree    
+-- 184. Department Highest Salary (CTE)
+WITH cte AS (
+  SELECT 
+    d.id AS departmentId,
+    d.name AS departmentName, 
+    MAX(e.salary) AS maxSalary
+  FROM Employee e
+  LEFT JOIN Department d
+  ON e.departmentId = d.id
+  GROUP BY d.id
+)
+SELECT 
+  cte.departmentName AS "Department",
+  e.name AS "Employee",
+  e.salary AS "Salary"
+FROM Employee e
+LEFT JOIN cte
+ON e.departmentId = cte.departmentId
+WHERE e.salary = cte.maxSalary;
+
+-- 570. Managers with at Least 5 Direct Reports (subquery)
+SELECT name
+FROM Employee
+WHERE id IN (
+  SELECT managerId
+  FROM Employee
+  GROUP BY managerId
+  HAVING COUNT(*) >= 5
+);
+
+-- 585. Investments in 2016 (subquery, ROUND())
+SELECT ROUND(SUM(tiv_2016), 2) AS tiv_2016
+FROM Insurance
+WHERE 
+  tiv_2015 IN (
+    SELECT tiv_2015
+    FROM Insurance
+    GROUP BY tiv_2015
+    HAVING COUNT(*) > 1
+  ) AND
+  pid IN (
+    SELECT pid
+    FROM Insurance
+    GROUP BY lat, lon
+    HAVING COUNT(*) = 1
+  )

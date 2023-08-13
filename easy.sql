@@ -52,12 +52,17 @@ WHERE COALESCE(referee_id, 0) <> 2;
 
 -- 586. Customer Placing the Largest Number of Orders (subquery, CTE)
 -- ORDER BY and LIMIT is not applicable since there might be multiple customers having max order numbers.
-WITH summary AS (
+WITH cte AS (
   SELECT customer_number, COUNT(*) AS qty
   FROM Orders
   GROUP BY customer_number
 )
-
 SELECT customer_number
-FROM summary
+FROM cte
 WHERE qty = (SELECT MAX(qty) FROM summary);
+
+-- 595. Big Countries (OR)
+SELECT name, population, area
+FROM World
+WHERE area >= 3000000 OR
+      population >= 25000000;
