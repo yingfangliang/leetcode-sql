@@ -91,3 +91,43 @@ WHERE
     GROUP BY lat, lon
     HAVING COUNT(*) = 1
   )
+
+-- 602. Friend Requests II: Who Has the Most Friends (UNION ALL)
+SELECT id, SUM(num) AS num
+FROM(
+  SELECT 
+    requester_id AS id,
+    Count(*) AS num
+  FROM RequestAccepted
+  GROUP BY requester_id
+  UNION ALL -- use UNION ALL since requested friends num and accepted friends num might be the same
+  SELECT 
+    accepter_id AS id,
+    Count(*) AS num
+  FROM RequestAccepted
+  GROUP BY accepter_id
+) AS tmp
+GROUP BY id
+ORDER BY SUM(num) DESC
+LIMIT 1;
+
+-- 608. Tree Node (CASE)
+SELECT 
+  id,
+  CASE
+    WHEN p_id IS NULL THEN "Root"
+    WHEN id = ANY(SELECT p_id FROM Tree) THEN "Inner"
+  ELSE "Leaf"
+  END AS type
+FROM Tree
+
+-- 626. Exchange Seats (CASE, LEAD, LAG
+)
+SELECT
+  id,
+  CASE
+    WHEN id = (SELECT MAX(id) FROM Seat) AND MOD(id, 2) = 1 THEN student
+    WHEN MOD(id, 2) = 1 THEN LEAD(student, 1) OVER(ORDER BY id)
+  ELSE LAG(student, 1) OVER(ORDER BY id)  
+  END AS student
+FROM Seat
