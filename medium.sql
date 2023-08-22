@@ -119,10 +119,9 @@ SELECT
     WHEN id = ANY(SELECT p_id FROM Tree) THEN "Inner"
   ELSE "Leaf"
   END AS type
-FROM Tree
+FROM Tree;
 
--- 626. Exchange Seats (CASE, LEAD, LAG
-)
+-- 626. Exchange Seats (CASE, LEAD, LAG)
 SELECT
   id,
   CASE
@@ -130,4 +129,54 @@ SELECT
     WHEN MOD(id, 2) = 1 THEN LEAD(student, 1) OVER(ORDER BY id)
   ELSE LAG(student, 1) OVER(ORDER BY id)  
   END AS student
-FROM Seat
+FROM Seat;
+
+-- 1045. Customers Who Bought All Products
+SELECT customer_id
+FROM Customer
+GROUP BY customer_id
+HAVING COUNT(DISTINCT product_key) = (SELECT COUNT(*) FROM Product);
+
+-- 1070. Product Sales Analysis III
+SELECT
+  s.product_id,
+  s.year AS first_year,
+  s.quantity,
+  s.price
+FROM Sales s
+LEFT JOIN (
+    SELECT product_id, MIN(year) AS year
+    FROM Sales
+    GROUP BY product_id
+) s_first
+USING (product_id)
+WHERE s.year = s_first.year;
+
+-- 550. Game Play Analysis IV (DATE_SUB)
+SELECT ROUND(COUNT(a2.player_id)/COUNT(a1.player_id), 2) AS fraction
+FROM (
+  SELECT player_id, MIN(event_date) AS first_login
+  FROM Activity
+  GROUP BY player_id
+  ) AS a1
+LEFT JOIN Activity AS a2
+ON a1.player_id = a2.player_id AND DATEDIFF(a1.first_login, a2.event_date) = -1
+
+SELECT 
+  ROUND(COUNT(DISTINCT player_id)/(SELECT COUNT(DISTINCT player_id) FROM Activity), 2) AS fraction
+FROM Activity
+WHERE (player_id, DATE_SUB(event_date, INTERVAL 1 DAY)) IN (
+  SELECT player_id, MIN(event_date)
+  FROM Activity
+  GROUP BY player_id
+  )
+
+-- 1158. Market Analysis I (execution order)
+SELECT 
+  u.user_id AS buyer_id, 
+  u.join_date, 
+  COUNT(o.order_id) AS orders_in_2019
+FROM Users AS u
+LEFT JOIN Orders AS o
+ON u.user_id = o.buyer_id AND YEAR(o.order_date) = 2019
+GROUP BY u.user_id
