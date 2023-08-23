@@ -180,3 +180,50 @@ FROM Users AS u
 LEFT JOIN Orders AS o
 ON u.user_id = o.buyer_id AND YEAR(o.order_date) = 2019
 GROUP BY u.user_id
+
+-- 1164. Product Price at a Given Date (UNION)
+WITH cte AS (
+  SELECT 
+    product_id, 
+    MAX(change_date) AS last_change
+  FROM Products
+  WHERE change_date <= "2019-08-16"
+  GROUP BY product_id
+)
+
+SELECT 
+  last.product_id AS product_id,
+  p.new_price AS price
+FROM cte AS last
+LEFT JOIN Products AS p
+ON last.product_id = p.product_id
+WHERE last.last_change = p.change_date
+UNION
+SELECT product_id, 10 AS price
+FROM Products
+WHERE product_id NOT IN (SELECT product_id FROM cte)
+
+-- 1174. Immediate Food Delivery II (True or False statement in SELECT)
+WITH cte AS (
+  SELECT 
+    customer_id,
+    MIN(order_date) AS first_order_date
+  FROM Delivery
+  GROUP BY customer_id
+)
+SELECT ROUND(100*AVG(d.order_date = d.customer_pref_delivery_date), 2) AS immediate_percentage
+FROM Delivery d
+LEFT JOIN cte
+ON d.customer_id = cte.customer_id
+WHERE d.order_date = cte.first_order_date 
+
+-- 1193. Monthly Transactions I (DATE_FORMAT(), IF statement in SUM())
+SELECT 
+  DATE_FORMAT(trans_date, "%Y-%m") AS month,
+  country,
+  COUNT(*) AS trans_count,
+  SUM(state = "approved") AS approved_count,
+  SUM(amount) AS trans_total_amount,
+  SUM(IF(state = "approved", amount, 0)) AS approved_total_amount
+FROM Transactions
+GROUP BY country, DATE_FORMAT(trans_date, "%Y-%m")
