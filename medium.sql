@@ -227,3 +227,33 @@ SELECT
   SUM(IF(state = "approved", amount, 0)) AS approved_total_amount
 FROM Transactions
 GROUP BY country, DATE_FORMAT(trans_date, "%Y-%m")
+
+-- 1204. Last Person to Fit in the Bus (SUM() OVER(ORDER BY))
+WITH cte AS (
+  SELECT 
+    *,
+    SUM(weight) OVER(ORDER BY turn) AS total_weight  
+  FROM Queue
+)
+SELECT person_name
+FROM cte
+WHERE total_weight <= 1000
+ORDER BY total_weight DESC
+LIMIT 1
+
+-- 1321. Restaurant Growth (SELF JOIN, DATEDIFF())
+WITH cte AS (
+  SELECT 
+    visited_on,
+    SUM(amount) AS daily_sum
+  FROM Customer
+  GROUP BY visited_on
+)
+SELECT 
+  curr.visited_on,
+  SUM(prev.daily_sum )AS amount,
+  ROUND(SUM(prev.daily_sum)/7, 2) AS average_amount
+FROM cte curr, cte prev
+WHERE DATEDIFF(curr.visited_on, prev.visited_on) BETWEEN 0 AND 6
+GROUP BY curr.visited_onHAVING curr.visited_on >= (SELECT DATE_ADD(MIN(visited_on), INTERVAL 6 DAY) FROM Customer) 
+ORDER BY curr.visited_on
