@@ -257,3 +257,25 @@ FROM cte curr, cte prev
 WHERE DATEDIFF(curr.visited_on, prev.visited_on) BETWEEN 0 AND 6
 GROUP BY curr.visited_onHAVING curr.visited_on >= (SELECT DATE_ADD(MIN(visited_on), INTERVAL 6 DAY) FROM Customer) 
 ORDER BY curr.visited_on
+
+-- 1341. Movie Rating (UNION ALL, GROUP BY then ORDER BY)
+(SELECT u.name AS results
+FROM MovieRating mr LEFT JOIN Users u ON u.user_id = mr.user_id
+GROUP BY mr.user_id ORDER BY COUNT(*) DESC, u.name ASC LIMIT 1)
+UNION ALL
+(SELECT m.title AS results
+FROM MovieRating mr LEFT JOIN Movies m ON m.movie_id = mr.movie_id
+WHERE DATE_FORMAT(mr.created_at, "%Y-%m") = "2020-02"
+GROUP BY mr.movie_id ORDER BY AVG(mr.rating) DESC, m.title ASC LIMIT 1)
+
+-- 1393. Capital Gain/Loss (CASE)
+SELECT 
+    stock_name,
+    SUM(
+        CASE
+            WHEN operation = "Sell" THEN price
+            WHEN operation = "Buy" THEN -price
+        END
+        ) AS capital_gain_loss
+FROM Stocks
+GROUP BY stock_name
