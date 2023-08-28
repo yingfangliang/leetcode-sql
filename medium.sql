@@ -279,3 +279,37 @@ SELECT
         ) AS capital_gain_loss
 FROM Stocks
 GROUP BY stock_name
+
+-- 1907. Count Salary Categories (UNION, COALESCE)
+SELECT t1.category, COALESCE(t2.accounts_count, 0) AS accounts_count
+FROM (
+    SELECT "Low Salary" AS category
+    UNION
+    SELECT "Average Salary" AS category
+    UNION
+    SELECT "High Salary" AS category
+) AS t1
+LEFT JOIN (
+    SELECT category, COUNT(*) AS accounts_count
+    FROM (
+        SELECT
+            CASE
+                WHEN income < 20000 THEN "Low Salary"
+                WHEN income > 50000 THEN "High Salary"
+            ELSE "Average Salary"
+            END AS category
+        FROM Accounts
+    ) AS tmp
+    GROUP BY category
+) AS t2
+ON t1.category = t2.category
+
+-- 1934. Confirmation Rate (COALESCE)
+SELECT s.user_id, ROUND(COALESCE(rate, 0), 2) AS confirmation_rate
+FROM Signups AS s
+LEFT JOIN (
+    SELECT user_id, AVG(IF(action="confirmed", 1, 0)) AS rate
+    FROM Confirmations
+    GROUP BY user_id
+) AS c
+ON s.user_id = c.user_id
