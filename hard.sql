@@ -28,3 +28,19 @@ WHERE
     t.request_at >= "2013-10-01" AND
     t.request_at <= "2013-10-03"
 GROUP BY t.request_at
+
+-- 601. Human Traffic of Stadium
+SELECT id, visit_date, people
+FROM(
+    SELECT id, visit_date, people, 
+        LEAD(people, 1) OVER (ORDER BY id) people_next1day,
+        LEAD(people, 2) OVER (ORDER BY id) people_next2day,
+        LAG(people, 1) OVER (ORDER BY id) people_last1day,
+        LAG(people, 2) OVER (ORDER BY id) people_last2day
+    FROM Stadium) AS tmp
+WHERE 
+    people >= 100 AND (
+        (people_next1day >= 100 AND people_next2day >= 100) OR
+        (people_next1day >= 100 AND people_last1day >= 100) OR
+        (people_last1day >= 100 AND people_last2day >= 100)
+        )
